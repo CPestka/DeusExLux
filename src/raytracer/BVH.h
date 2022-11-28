@@ -44,6 +44,7 @@ public:
   void AddChildPtr(BVHNode<space_type,color_type>* child_ptr) {
     if (child_count < child_reserved) {
       child_ptrs[child_count] = child_ptr;
+      child_count++;
     } else {
       auto tmp = std::make_unique<BVHNode<space_type,color_type>*[]>(child_reserved + 10);
       child_reserved += 10;
@@ -120,6 +121,23 @@ public:
 
     return *this;
   }
+
+  void PrintNode() const {
+    std::cout << "Tris: " << tri_count
+              <<"\tSpheres: " << sphere_count
+              << "\tChilds: " << child_count << "\n\n";
+    return;
+  }
+  void PrintNodeAndChilds(int lvl) const {
+    std::cout << "Current lvl: " << lvl << "\n" << std::endl;
+    lvl++;
+
+    PrintNode();
+ 
+    for(uint16_t i=0; i<child_count; i++){
+      child_ptrs[i]->PrintNodeAndChilds(lvl);
+    }
+  }
 };
 
 template<Float_t space_type, Float_t color_type>
@@ -132,6 +150,7 @@ class BVH {
   uint32_t tri_count = 0;
   uint32_t sphere_count = 0;
 
+  //returns a ptr to the added node
   BVHNode<space_type,color_type>* AddNode(BVHNode<space_type,color_type>&& node) {
     if (size < reserved) {
       nodes[size] = std::move(node);
@@ -157,6 +176,18 @@ class BVH {
     }
     return &(nodes[size-1]);
   }
+
+  void PrintBVH() const {
+    if (size == 0) {
+      return;
+    }
+    
+    std::cout << "\nBVH: \n" << std::endl;
+    std::cout << "Node count: " << size 
+              << "\tTri count: " << tri_count
+              << "\tSphere count: " << sphere_count << std::endl;
+    nodes[0].PrintNodeAndChilds(0);
+  }
 };
 
 template<Float_t space_type, Float_t color_type>
@@ -164,12 +195,12 @@ Box<space_type,color_type> GetFittingBox(
     const std::vector<Tri<space_type,color_type>>& tris,
     const std::vector<Sphere<space_type,color_type>>& spheres,
     std::shared_ptr<PBRMaterial<space_type,color_type>> box_material) {
-  space_type max_x = 0.0;
-  space_type max_y = 0.0;
-  space_type max_z = 0.0;
-  space_type min_x = 0.0;
-  space_type min_y = 0.0;
-  space_type min_z = 0.0;
+  space_type max_x = std::numeric_limits<space_type>::min();
+  space_type max_y = std::numeric_limits<space_type>::min();
+  space_type max_z = std::numeric_limits<space_type>::min();
+  space_type min_x = std::numeric_limits<space_type>::max();
+  space_type min_y = std::numeric_limits<space_type>::max();
+  space_type min_z = std::numeric_limits<space_type>::max();
 
   for(int64_t i=0; i<static_cast<int64_t>(tris.size()); i++){
     for(int j=0; j<3; j++){
@@ -216,9 +247,9 @@ bool IsInBox(const Vec3<space_type>& my_vertex,
   space_type max_x = my_box.tris[4].vertex[0].x;
   space_type max_y = my_box.tris[0].vertex[0].y;
   space_type max_z = my_box.tris[6].vertex[0].z;
-  space_type min_x = my_box.tris[2].vertex[0].x;
+  space_type min_x = my_box.tris[10].vertex[0].x;
   space_type min_y = my_box.tris[10].vertex[0].y;
-  space_type min_z = my_box.tris[8].vertex[0].z;
+  space_type min_z = my_box.tris[10].vertex[0].z;
   
   return (my_vertex.x <= max_x &&
           my_vertex.x >= min_x &&
@@ -235,9 +266,9 @@ bool IsInBox(const Sphere<space_type,color_type>& my_sphere,
   space_type max_x = my_box.tris[4].vertex[0].x;
   space_type max_y = my_box.tris[0].vertex[0].y;
   space_type max_z = my_box.tris[6].vertex[0].z;
-  space_type min_x = my_box.tris[2].vertex[0].x;
+  space_type min_x = my_box.tris[10].vertex[0].x;
   space_type min_y = my_box.tris[10].vertex[0].y;
-  space_type min_z = my_box.tris[8].vertex[0].z;
+  space_type min_z = my_box.tris[10].vertex[0].z;
   
   return (my_sphere.origin.x - my_sphere.r <= max_x &&
           my_sphere.origin.x + my_sphere.r >= min_x &&
@@ -329,6 +360,10 @@ void SubdivideBVH(
     std::optional<BVHNode<space_type,color_type>*> parent_of_parent_ptr,
     uint16_t current_bvh_depth,
     uint16_t max_bvh_depth) {
+  std::cout << "current lvl " << current_bvh_depth << std::endl;
+  std::cout << "tris to distribute: " << tris.size()
+            << "\nspheres to distribute: " << spheres.size() << std::endl;
+
   //Add parent node based on passed box
   std::optional<BVHNode<space_type,color_type>*> parent_ptr = 
       bvh.AddNode(BVHNode(
@@ -357,6 +392,9 @@ void SubdivideBVH(
         j--;
       }
     }
+    std::cout << "child box id: " << i
+              << "\ttris: " << tris_in_child.size()
+              << "\tsph: " << spheres_in_child.size() << std::endl;
     
     uint32_t prim_in_child = (tris_in_child.size() + spheres_in_child.size());
 
@@ -367,6 +405,7 @@ void SubdivideBVH(
       if (prim_in_child < 12 || current_bvh_depth == max_bvh_depth) {
         //Add leave node to bvh if only a small number of primitives are in the
         //child or if max recursion depth has been reached
+        std::cout << "adding child" << std::endl;
         auto ptr_to_this_node = bvh.AddNode(BVHNode(
             current_box,
             box_material,

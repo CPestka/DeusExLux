@@ -76,9 +76,9 @@ class Tri: public Primitive<space_type, color_type> {
 public:
   Vec3<space_type> vertex[3] =
       {Vec3<space_type>(0.0,0.0,0.0),
-       Vec3<space_type>(0.0,0.0,1.0),
+       Vec3<space_type>(1.0,0.0,0.0),
        Vec3<space_type>(0.0,1.0,0.0)};
-  Vec3<space_type> geometry_normal = Vec3<space_type>(-1.0,0.0,0.0);
+  Vec3<space_type> geometry_normal = Vec3<space_type>(0.0,0.0,1.0);
   
   Tri() {};
   Tri(std::shared_ptr<PBRMaterial<space_type,color_type>> mat) {
@@ -99,8 +99,8 @@ public:
   
   void ComputeNormal(){
     geometry_normal =
-        ComputeCrossProduct(vertex[2]-vertex[0],
-                            vertex[1]-vertex[0]);
+        ComputeCrossProduct(vertex[1]-vertex[0],
+                            vertex[2]-vertex[0]);
     geometry_normal.Normalize();
   }
   //Util func to test if triangle is actually valid 

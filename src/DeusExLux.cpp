@@ -37,7 +37,7 @@ int main(){
   constexpr uint32_t samples_per_pixel = 20;
   constexpr uint32_t max_ray_bounces = 6;
 
-  Camera<float,float> cam(
+  Camera<space_t,color_t> cam(
       img_width,
       img_height, 
       f_stop,
@@ -66,11 +66,16 @@ int main(){
       Sphere<space_t,color_t>(0.5, Vec3<float>(7.0,2.0,0.0), basic_material));
 
   std::vector<Tri<space_t,color_t>> tris;
-  tris.push_back(Tri<space_t,color_t>(basic_material));
-  tris.push_back(Tri<space_t,color_t>(basic_material));
-  tris[0].Translate(Vec3<space_t>(1.0,1.0,1.0));
-  tris[1].Translate(Vec3<space_t>(1.0,1.0,-1.0));
-  
+  tris.push_back(Tri<space_t,color_t>(Vec3<space_t>(10.0,0,-10.0),
+                                      Vec3<space_t>(10.0,2.0,2.0),
+                                      Vec3<space_t>(10.0,2.0,-2.0),
+                                      basic_material));
+  tris.push_back(Tri<space_t,color_t>(Vec3<space_t>(10.0,4.0,-10.0),
+                                      Vec3<space_t>(10.0,12.0,2.0),
+                                      Vec3<space_t>(10.0,12.0,-8.0),
+                                      basic_material));
+
+
   //Construct BVH that will hold primitives and is used for the raytracing
   auto bvh = ConstructOptimizedBVH<space_t,color_t>(
       std::move(tris),
@@ -97,6 +102,8 @@ int main(){
     std::cout << "Failed to write image to file" << std::endl;
     return EXIT_FAILURE;
   }
+
+  bvh.PrintBVH();
 
   return EXIT_SUCCESS;
 }
