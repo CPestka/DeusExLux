@@ -18,7 +18,6 @@
 
 enum RenderMode {
   RasterRay, //Most akin to regular rasterization = only samples albedo on hit, no bounces
-  AlbedoRay, //Proper bounces used, but only considers albedo over full PBR properties
   FullRayNoTransparency, //Considers all PBR properties execpt transperency
   FullRay
 };
@@ -59,12 +58,20 @@ Pixel<color_type> RenderPixel(
     
     //Select required raytracing function based on selected mode at COMPILETIME
     if constexpr (mode == RasterRay) {
-      pxl += TraceRasterRay<space_type,color_type>(
+      pxl += TraceRayRaster<space_type,color_type>(
         Ray<space_type>(camera_lense_exit_point, viewport_intersection_point),
         bvh,
         background);
     } else {
-      std::terminate();
+      if constexpr (mode == FullRayNoTransparency) {
+        pxl += TraceRayNoTransparency<space_type,color_type>(
+        Ray<space_type>(camera_lense_exit_point, viewport_intersection_point),
+        bvh,
+        max_bounces,
+        background);
+      } else {
+        std::terminate();
+      }
     }
     
   }
