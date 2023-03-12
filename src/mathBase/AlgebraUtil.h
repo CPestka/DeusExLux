@@ -15,7 +15,7 @@
 //A Cartesian coordinate system relative to the "base cartesian coord-sys" 
 //ONB + origin + util to transform it
 template<Float_t space_type>
-class Coordinates {
+class RelativeCoordinates {
 public:
   Vec3<space_type> origin = Vec3<space_type>(0.0,0.0,0.0);
   Vec3<space_type> e1_view_dir = Vec3<space_type>(1.0,0.0,0.0);
@@ -49,3 +49,19 @@ public:
   }
 };
 
+template<Float_t T>
+T RadToDegrees(T angle) {
+  return angle * 180.0 / M_PI;
+}
+
+template<Float_t T>
+T DegreesToRad(T angle) {
+  return angle * M_PI / 180.0;
+}
+
+template<Float_t space_type>
+Vec3<space_type> ReflectOnPlane(
+    const Vec3<space_type>& ray_dir_inc,
+    const Vec3<space_type>& normal) {
+  return ray_dir_inc - (2 * (ray_dir_inc * normal) * normal);
+}

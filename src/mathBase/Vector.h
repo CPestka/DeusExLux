@@ -9,7 +9,7 @@ template<Scalar_t T>
 class Quaternion;
 
 template<Scalar_t T>
-class Vec2 {
+class alignas(2*sizeof(T)) Vec2 {
   public:
   T x;
   T y;
@@ -199,7 +199,7 @@ std::optional<Vec2<T>> TryComputeNormal(Vec2<T>&& v) {
 }
 
 template<Scalar_t T>
-class Vec3 {
+class alignas(4*sizeof(T)) Vec3 {
   public:
   T x;
   T y;
@@ -529,9 +529,10 @@ std::optional<T> TryGetAngleBetween(const Vec3<T>& lhs, const Vec3<V>& rhs) {
 }
 
 template<Scalar_t T>
-class Quaternion {
+class alignas(4*sizeof(T))  Quaternion {
   public:
   T x1,x2,x3,x4;
+  explicit Quaternion() {};
   explicit Quaternion(T x1, T x2, T x3, T x4) : x1(x1), x2(x2), x3(x3), x4(x4) {}
   //For quaternion that is to be rotated
   template<Scalar_t V>
