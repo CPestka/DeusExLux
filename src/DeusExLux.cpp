@@ -5,6 +5,9 @@
 #include "Material.h"
 #include "Primitives.h"
 #include "BVH.h"
+#include "RenderImage.h"
+#include "Tonemapper.h"
+#include "PPMFileWriter.h"
 
 //TODO:
 // check rotations; diffuse brdf no transmission; cooler scene; + transmission; specular + t
@@ -17,6 +20,7 @@
 int main(){
   typedef float space_t;
   typedef float color_t;
+  typedef uint8_t descrete_color_t;
 
   constexpr int32_t img_width = 192;
   constexpr int32_t img_height = 108;
@@ -27,6 +31,13 @@ int main(){
   constexpr space_t sensor_size = 35; //35 == Full frame sensor
 
   constexpr uint16_t max_bvh_depth = 10; 
+
+  uint16_t render_thread_count = std::thread::hardware_concurrency();
+  constexpr uint32_t tile_size_x = 64;
+  constexpr uint32_t tile_size_y = 64;
+
+  constexpr uint32_t samples_per_pixel = 20;
+  constexpr uint32_t max_ray_bounces = 1;
 
   Camera<space_t,color_t> cam(
       img_width,
@@ -73,6 +84,26 @@ int main(){
       std::move(spheres),
       basic_material,
       max_bvh_depth);
+
+  //RenderImage or ContinueRenderImage are used to Render the scene via
+  //raytracing
+  auto render = RenderImage<space_t,color_t,RasterRay>(
+      cam,
+      samples_per_pixel,
+      max_ray_bounces,
+      tile_size_x,
+      tile_size_y,
+      bvh,
+      background,
+      render_thread_count);
+
+  auto descrete_img =
+      PerformGlobalReinhardTonemapping<color_t,descrete_color_t>(render);
+
+  if (!WriteImageToPPMFile<descrete_color_t>(descrete_img, "./out.ppm")) {
+    std::cout << "Failed to write image to file" << std::endl;
+    return EXIT_FAILURE;
+  }
 
   return EXIT_SUCCESS;
 }

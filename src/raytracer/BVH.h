@@ -360,9 +360,9 @@ void SubdivideBVH(
     std::optional<BVHNode<space_type,color_type>*> parent_of_parent_ptr,
     uint16_t current_bvh_depth,
     uint16_t max_bvh_depth) {
-  std::cout << "current lvl " << current_bvh_depth << std::endl;
-  std::cout << "tris to distribute: " << tris.size()
-            << "\nspheres to distribute: " << spheres.size() << std::endl;
+  // std::cout << "current lvl " << current_bvh_depth << std::endl;
+  // std::cout << "tris to distribute: " << tris.size()
+  //           << "\nspheres to distribute: " << spheres.size() << std::endl;
 
   //Add parent node based on passed box
   std::optional<BVHNode<space_type,color_type>*> parent_ptr = 
@@ -392,9 +392,9 @@ void SubdivideBVH(
         j--;
       }
     }
-    std::cout << "child box id: " << i
-              << "\ttris: " << tris_in_child.size()
-              << "\tsph: " << spheres_in_child.size() << std::endl;
+    // std::cout << "child box id: " << i
+    //           << "\ttris: " << tris_in_child.size()
+    //           << "\tsph: " << spheres_in_child.size() << std::endl;
     
     uint32_t prim_in_child = (tris_in_child.size() + spheres_in_child.size());
 
@@ -405,7 +405,7 @@ void SubdivideBVH(
       if (prim_in_child < 12 || current_bvh_depth == max_bvh_depth) {
         //Add leave node to bvh if only a small number of primitives are in the
         //child or if max recursion depth has been reached
-        std::cout << "adding child" << std::endl;
+        //std::cout << "adding child" << std::endl;
         auto ptr_to_this_node = bvh.AddNode(BVHNode(
             current_box,
             box_material,
@@ -442,11 +442,11 @@ BVH<space_type,color_type> ConstructOptimizedBVH(
     std::vector<Sphere<space_type,color_type>>&& spheres,
     std::shared_ptr<PBRMaterial<space_type,color_type>> box_material,
     uint16_t max_bvh_depth){
-  std::cout << "Constructing Bounding Box Volume Hirearchy (BVH) acceleration structure\n"
+  std::cout << "Constructing Bounding Box Volume Hirearchy (BVH) acceleration structure\n\n"
             << "From Scene with:\n"
             << "Triangles:\t" << tris.size() << "\n"
-            << "Spheres:\t" << spheres.size() << "\n"
-            << "Maximum BVH depth:\t" << max_bvh_depth << "\n\n" << std::endl;
+            << "Spheres:\t" << spheres.size() << "\n\n"
+            << "Maximum BVH depth:\t" << max_bvh_depth << "\n" << std::endl;
 
   IntervallTimer timer;
 
