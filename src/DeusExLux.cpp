@@ -4,6 +4,7 @@
 #include "Camera.h"
 #include "Material.h"
 #include "Primitives.h"
+#include "BVH.h"
 
 //TODO:
 // check rotations; diffuse brdf no transmission; cooler scene; + transmission; specular + t
@@ -24,6 +25,8 @@ int main(){
   constexpr space_t focal_length = 20;
   constexpr space_t focus_distance = 1.0;
   constexpr space_t sensor_size = 35; //35 == Full frame sensor
+
+  constexpr uint16_t max_bvh_depth = 10; 
 
   Camera<space_t,color_t> cam(
       img_width,
@@ -64,6 +67,12 @@ int main(){
                                       Vec3<space_t>(10.0,12.0,-8.0),
                                       basic_material));
 
+  //Construct BVH that will hold primitives and is used for the raytracing
+  auto bvh = ConstructOptimizedBVH<space_t,color_t>(
+      std::move(tris),
+      std::move(spheres),
+      basic_material,
+      max_bvh_depth);
 
   return EXIT_SUCCESS;
 }
